@@ -1,0 +1,24 @@
+How many subjects? 6
+Enter the name of subject 1: DSA
+Enter the name of subject 2: MATHS
+Enter the name of subject 3: AI
+Enter the name of subject 4: Chemistry
+Enter the name of subject 5: Physics
+Enter the name of subject 6: German
+Enter marks for DSA (out of 100): 70
+Enter marks for MATHS (out of 100): 89
+Enter marks for AI (out of 100): 75
+Enter marks for Chemistry (out of 100): 90
+Enter marks for Physics (out of 100): 90
+Enter marks for German (out of 100): 92
+
+--- Student Report Card ---
+DSA: Marks = 70, Grade = B
+MATHS: Marks = 89, Grade = A
+AI: Marks = 75, Grade = B
+Chemistry: Marks = 90, Grade = A+
+Physics: Marks = 90, Grade = A+
+German: Marks = 92, Grade = A+
+
+Average Marks: 84.33
+Final Grade: A
