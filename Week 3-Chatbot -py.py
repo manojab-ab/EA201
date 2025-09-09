@@ -167,8 +167,8 @@ class CampusChatbotGUI:
 
         tk.Button(travel_window, text="Calculate Route", command=calculate_route).pack(pady=10)
 
-# --- Run GUI ---
 if __name__ == "__main__":
     root = tk.Tk()
     app = CampusChatbotGUI(root)
     root.mainloop()
+
