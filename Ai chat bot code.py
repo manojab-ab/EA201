@@ -57,7 +57,7 @@ faq = {
     "Entrance": "The Entrance is the main gate of the campus."
 }
 
-# --- Synonyms for locations ---
+# --- Synonyms ---
 synonyms = {
     "food court": ["canteen", "mess", "dining hall"],
     "hostel block": ["dorm", "residence", "hostel"],
@@ -69,8 +69,30 @@ synonyms = {
     "entrance": ["main gate", "entry", "gate"]
 }
 
+# --- Directions dictionary (manual) ---
+directions = {
+    ("Flag Pole", "Academic Block"): "Go straight",
+    ("Academic Block", "Flag Pole"): "Go straight back",
+    ("Academic Block", "Engineering Block"): "Turn right",
+    ("Engineering Block", "Academic Block"): "Turn left",
+    ("Flag Pole", "Engineering Block"): "Turn right",
+    ("Engineering Block", "Flag Pole"): "Turn left",
+    ("Flag Pole", "Food Court"): "Turn left",
+    ("Food Court", "Flag Pole"): "Turn right",
+    ("Food Court", "Hostel Block"): "Go straight",
+    ("Hostel Block", "Food Court"): "Go straight back",
+    ("Hostel Block", "Sports Area"): "Go straight ahead",
+    ("Sports Area", "Hostel Block"): "Go back",
+    ("Flag Pole", "Hostel Block"): "Go forward towards Hostel",
+    ("Hostel Block", "Flag Pole"): "Return straight to Flag Pole",
+    ("Food Court", "Engineering Block"): "Take the right path",
+    ("Engineering Block", "Food Court"): "Take the left path",
+    ("Flag Pole", "Sports Area"): "Take the long road straight",
+    ("Sports Area", "Flag Pole"): "Take the long road back"
+}
+
+# --- Normalize user input ---
 def normalize_place(user_text):
-    """Match user text to closest known place or synonym"""
     user_text = user_text.lower()
     for place, keys in synonyms.items():
         if place in user_text:
@@ -101,34 +123,43 @@ def shortest_path(start, end, mode):
                 heapq.heappush(pq, (dist + d, neighbor, path))
     return float("inf"), []
 
-# --- GUI ---
+# --- Generate Turn Instructions ---
+def generate_instructions(path):
+    if not path:
+        return ["No valid route found."]
+    instructions = [f"Start at {path[0]}."]
+    for i in range(len(path) - 1):
+        step = directions.get((path[i], path[i+1]), f"Go towards {path[i+1]}")
+        instructions.append(f"{step} to {path[i+1]}.")
+    instructions.append("You have reached your destination.")
+    return instructions
+
+# --- GUI Class ---
 class CampusChatbotGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Chanakya Campus Chatbot")
         self.root.geometry("700x650")
 
+        # Chat Frame
         self.chat_frame = tk.Text(root, state='disabled', wrap='word', bg="#f0f0f0")
         self.chat_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
+        # Buttons
         self.button_frame = tk.Frame(root)
         self.button_frame.pack(padx=10, pady=5, fill=tk.X)
-
         tk.Label(self.button_frame, text="Select an option:", font=("Arial", 12, "bold")).pack(pady=5)
-
         tk.Button(self.button_frame, text="FAQs", width=20, command=self.show_faqs).pack(pady=2)
         tk.Button(self.button_frame, text="Check Timing", width=20, command=self.check_time).pack(pady=2)
         tk.Button(self.button_frame, text="Plan Travel", width=20, command=self.plan_travel).pack(pady=2)
         tk.Button(self.button_frame, text="Exit", width=20, command=root.quit).pack(pady=2)
 
-        # --- Chat Input ---
+        # Chat Input
         self.entry_frame = tk.Frame(root)
         self.entry_frame.pack(padx=10, pady=10, fill=tk.X)
-
         self.entry = tk.Entry(self.entry_frame, font=("Arial", 12))
-        self.entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        self.entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0,5))
         self.entry.bind("<Return>", self.send_message)
-
         self.send_btn = tk.Button(self.entry_frame, text="Send", command=self.send_message)
         self.send_btn.pack(side=tk.RIGHT)
 
@@ -156,25 +187,25 @@ class CampusChatbotGUI:
         self.process_message(user_msg.lower())
 
     def process_message(self, msg):
-        # --- Greeting Queries ---
+        # Greeting
         if re.search(r"\b(hi|hii|hello|helo|hey|yo|good morning|good evening|namaste)\b", msg):
             self.bot_speak("Hi! I'm your Chanakya Campus Chatbot. You can ask about timings, locations, or travel.")
             return
 
-        # --- Timing Queries ---
+        # Timing Queries
         for place in timings:
             if place.lower() in msg or normalize_place(msg) == place:
                 if any(word in msg for word in ["time", "open", "close", "when"]):
                     self.bot_speak(f"{place} timings: {timings[place]}\nNote: Campus closed on Sunday.")
                     return
 
-        # --- FAQ Queries ---
+        # FAQ Queries
         for place in faq:
             if place.lower() in msg or normalize_place(msg) == place:
                 self.bot_speak(f"{place}: {faq[place]}")
                 return
 
-        # --- Travel Queries ---
+        # Travel Queries
         travel_match = re.search(r"travel from (.+) to (.+) by (walk|vehicle)", msg)
         if travel_match:
             start = normalize_place(travel_match.group(1))
@@ -184,13 +215,15 @@ class CampusChatbotGUI:
                 dist, path = shortest_path(start, end, mode)
                 if path:
                     self.bot_speak(f"Best route ({mode}): {' -> '.join(path)} (Total {dist}m)")
+                    for step in generate_instructions(path):
+                        self.bot_speak(step)
                 else:
                     self.bot_speak("Sorry, no route found.")
             else:
                 self.bot_speak("I couldn't find those locations.")
             return
 
-        # --- Default Fallback ---
+        # Default Fallback
         self.bot_speak("Sorry, I didn’t understand. You can ask about timings, locations, or travel.")
 
     # --- FAQ ---
@@ -248,14 +281,18 @@ class CampusChatbotGUI:
             dist, path = shortest_path(start, end, mode)
             if path:
                 self.bot_speak(f"Best route ({mode}): {' -> '.join(path)} (Total {dist}m)")
+                for step in generate_instructions(path):
+                    self.bot_speak(step)
             else:
                 self.bot_speak("Sorry, no route found.")
             travel_window.destroy()
 
         tk.Button(travel_window, text="Calculate Route", command=calculate_route).pack(pady=10)
 
+
 # --- Run GUI ---
 if __name__ == "__main__":
     root = tk.Tk()
     app = CampusChatbotGUI(root)
     root.mainloop()
+
