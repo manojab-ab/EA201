@@ -25,3 +25,18 @@ for thr in thresholds:
 
 print(f"\nBest split: Study Hours ≤ {best['th']} (Weighted Gini={best['gini']:.3f})")
 
+
+#OUTPUT
+#Evaluating splits:
+ Split at 3.0: Gini_left=0.000, Gini_right=0.375, Weighted=0.300
+ Split at 5.0: Gini_left=0.000, Gini_right=0.000, Weighted=0.000
+ Split at 7.0: Gini_left=0.444, Gini_right=0.000, Weighted=0.267
+ Split at 9.0: Gini_left=0.500, Gini_right=0.000, Weighted=0.400
+
+Best split: Study Hours ≤ 5.0 (Weighted Gini=0.000)
+
+
+
+ 
+
+
